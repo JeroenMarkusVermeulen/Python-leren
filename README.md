@@ -65,3 +65,70 @@ bestaande gebruikersnaam (400). De tests voeren deze requests automatisch uit:
 ```
 
 Sprint 2 blijft beschikbaar via `python sprint2.py` op poort 8001.
+
+## Sprint 4: SQLite en SQLAlchemy
+
+Sprint 3 bewaart lijsten in het geheugen; die beginnen na een herstart opnieuw.
+Sprint 4 gebruikt een SQLite-bestand (`game_scores.db`) en SQLAlchemy om rijen
+in tabellen te lezen en te schrijven. Een relationele database bewaart records
+in tabellen met kolommen. Een ORM koppelt een Python-klasse aan zo'n tabel.
+
+### Databaseontwerp
+
+| Tabel | Kolom | Betekenis |
+| --- | --- | --- |
+| `players` | `id` | Primary Key: uniek nummer van de speler |
+| `players` | `username` | Naam die de API toont |
+| `players` | `username_key` | Unieke naam voor vergelijken zonder hoofdletterverschil |
+| `scores` | `id` | Primary Key: uniek nummer van de score |
+| `scores` | `player_id` | Foreign Key naar `players.id` |
+| `scores` | `points` | Toegevoegde punten (positief geheel getal) |
+
+Eén speler heeft nul of meer scores. `scores.player_id` verwijst naar precies
+één speler. De Foreign Key voorkomt scores voor een niet-bestaande speler.
+Als een speler wordt verwijderd, worden diens scores ook verwijderd. De
+totaalscore in de API is de som van zijn score-rijen en staat daarom niet als
+afzonderlijke kolom in `players`.
+
+```text
+players (id PK, username, username_key UNIQUE)
+    1 ──────────────── 0..N
+scores  (id PK, player_id FK → players.id, points)
+```
+
+De SQL achter de belangrijkste bewerkingen is `INSERT` voor POST, `SELECT`
+voor GET, `UPDATE` voor PUT en `DELETE` voor DELETE. SQLAlchemy maakt die
+queries uit de Python-modellen. Bij `POST /players/{id}/scores` verloopt het
+pad zo: FastAPI ontvangt JSON → Pydantic valideert `points` → SQLAlchemy zoekt
+de speler → een `ScoreRow` wordt toegevoegd → `session.commit()` schrijft de
+rij naar SQLite → de API antwoordt met 201. Een volgende GET leest de rijen
+opnieuw uit de database.
+
+### Starten en controleren
+
+Installeer de afhankelijkheden zoals hierboven en start vanuit deze map:
+
+```powershell
+.\.venv\Scripts\python sprint4.py
+```
+
+Open [Swagger UI](http://127.0.0.1:8000/docs). De routes en statuscodes zijn
+gelijk aan Sprint 3. Bij de eerste start worden Alice en Bob één keer
+aangemaakt. Het databasebestand staat naast `sprint4.py` en wordt niet naar
+GitHub geüpload. Verwijderde voorbeeldspelers komen na een herstart niet terug.
+
+Test de opslag zelf: maak met `POST /players` een speler, noteer diens ID, voeg
+punten toe via `POST /players/{id}/scores`, stop de server met Ctrl+C en start
+`sprint4.py` opnieuw. `GET /players/{id}` toont dezelfde speler en totaalscore.
+Automatische tests doen dezelfde herstartcontrole met een tijdelijke database:
+
+```powershell
+.\.venv\Scripts\python -m pytest -q
+```
+
+Voor de korte terugblik na Sprint 4 staat een spreektekst met projectdemo in
+[SPOTLIGHT.md](SPOTLIGHT.md).
+
+Gerichte naslag: [FastAPI over SQL-databases](https://fastapi.tiangolo.com/tutorial/sql-databases/),
+[SQLAlchemy 2.0 Tutorial](https://docs.sqlalchemy.org/en/20/tutorial/) en
+[SQLite](https://www.sqlite.org/about.html).
