@@ -1,17 +1,23 @@
-"""HTTP- en persistentietests voor de SQLite-versie van de Game Score API."""
+"""Hetzelfde HTTP- en databasecontract voor Sprint 4 en de refactor in Sprint 5."""
 
 import sqlite3
 
 import pytest
 from fastapi.testclient import TestClient
 
-from sprint4 import create_app
+from sprint4 import create_app as create_sprint4_app
+from sprint5 import create_app as create_sprint5_app
+
+
+@pytest.fixture(params=[create_sprint4_app, create_sprint5_app], ids=["sprint4", "sprint5"])
+def app_factory(request):
+    return request.param
 
 
 @pytest.fixture
-def api(tmp_path):
+def api(tmp_path, app_factory):
     database = tmp_path / "game_scores.db"
-    with TestClient(create_app(database)) as client:
+    with TestClient(app_factory(database)) as client:
         yield client, database
 
 
@@ -49,9 +55,9 @@ def test_existing_routes_and_crud(api):
     assert len(client.get("/scores").json()) == 2
 
 
-def test_data_survives_app_restart_and_deletions_stay_deleted(tmp_path):
+def test_data_survives_app_restart_and_deletions_stay_deleted(tmp_path, app_factory):
     database = tmp_path / "persistent.db"
-    with TestClient(create_app(database)) as first:
+    with TestClient(app_factory(database)) as first:
         created = first.post("/players", json={"username": "Charlie"})
         player_id = created.json()["id"]
         assert first.post(f"/players/{player_id}/scores", json={"points": 25}).status_code == 201
@@ -59,7 +65,7 @@ def test_data_survives_app_restart_and_deletions_stay_deleted(tmp_path):
         assert first.delete("/players/1").status_code == 204
 
     assert database.is_file()
-    with TestClient(create_app(database)) as restarted:
+    with TestClient(app_factory(database)) as restarted:
         assert restarted.get(f"/players/{player_id}").json() == {
             "id": player_id,
             "username": "Dana",
