@@ -1,5 +1,43 @@
 # Game Score API
 
+## Sprint 5: de huidige versie
+
+De API is verdeeld over routers, services, repositories, database models en
+Pydantic schemas. Start vanuit deze map (`Python leren`):
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python sprint5.py
+```
+
+Of start met `.\.venv\Scripts\python -m uvicorn app.main:app --reload`.
+Open [Swagger UI](http://127.0.0.1:8000/docs). Alle tien endpoints uit de
+onderstaande tabel werken ook in Sprint 5. Het bestaande `game_scores.db`
+wordt gebruikt; de tabellen en opgeslagen gegevens blijven behouden.
+
+| Onderdeel | Waar staat het? |
+| --- | --- |
+| App samenstellen en starten | `app/main.py`, `sprint5.py` |
+| HTTP-endpoints | `app/routers/` |
+| Businessregels en transacties | `app/services/` |
+| Databasequeries | `app/repositories/` |
+| Tabellen en relaties | `app/models/` |
+| JSON-invoer, validatie en antwoorden | `app/schemas/` |
+| Verbindingen en sessies | `app/database.py`, `app/dependencies.py` |
+
+De analyse, het refactorplan, uitleg over imports en models versus schemas,
+en de testresultaten staan in [het sprintverslag](docs/sprint5.md).
+Gebruik [het feedbackformulier](docs/sprint5-feedback.md) voor de verplichte
+review met een klasgenoot. Die review moet nog echt plaatsvinden.
+
+```powershell
+.\.venv\Scripts\python -m pytest -q
+```
+
+De bestanden `sprint1.py` tot en met `sprint4.py` bewaren de eerdere
+leeropdrachten. Nieuwe functionaliteit voeg je toe aan `app/`.
+
 ## Sprint 3
 
 Een REST API beheert *resources* via URL's en HTTP-methoden. CRUD staat voor
