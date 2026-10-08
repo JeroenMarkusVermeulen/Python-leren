@@ -1,6 +1,41 @@
 # Game Score API
 
-## Sprint 5: de huidige versie
+## Sprint 6: Supabase Database en Auth
+
+De nieuwe versie gebruikt Supabase voor PostgreSQL-opslag, registratie en
+inloggen. De implementatie staat in `app/supabase_api/`; `sprint6.py` is het
+startscript. De database staat in het aparte Supabase-project
+[Game Score API](https://supabase.com/dashboard/project/sbrwjjbvwqaqukxtkirx).
+Alice en Bob zijn met hun bestaande IDs en scores overgezet. Internly is niet gewijzigd.
+
+Start vanuit `Python leren`. De lokale `.env` is al ingesteld; maak die op een
+andere computer alleen aan wanneer hij nog niet bestaat:
+
+```powershell
+.\.venv\Scripts\python -m pip install -r requirements.lock
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# Op een andere computer: vul de project-URL en publishable key in .env in.
+.\.venv\Scripts\python sprint6.py
+```
+
+Open [Swagger UI](http://127.0.0.1:8000/docs). Registreer via `/auth/register`,
+bevestig zo nodig je e-mailadres en log in via `/auth/login`. Het veld `username`
+bevat je e-mailadres. Plak het teruggegeven `access_token` in **Authorize**.
+E-mailbevestiging is ingeschakeld. De standaardmaildienst van Supabase stuurt
+alleen naar adressen van organisatieleden; gebruik je Supabase-teamadres voor
+de demo. Voor registratie met andere adressen moet eigen SMTP worden ingesteld.
+Zie [Supabase SMTP](https://supabase.com/docs/guides/auth/auth-smtp).
+
+Iedereen kan spelers, scores en de ranglijst lezen. Spelers aanmaken vereist
+een login; wijzigen, verwijderen en punten toevoegen mag alleen de eigenaar.
+Supabase RLS controleert dit ook bij directe requests aan de Data API.
+
+Het [sprintverslag](docs/sprint6.md) beschrijft de authentication-flow,
+authorization, de uitgevoerde migratie, instellingen en testresultaten.
+De eerdere SQLite-versies blijven als leeropdrachten beschikbaar via `sprint4.py`
+en `sprint5.py`; het actieve Supabase-project gebruikt `sprint6.py`.
+
+## Sprint 5: de modulaire SQLite-versie
 
 De API is verdeeld over routers, services, repositories, database models en
 Pydantic schemas. Start vanuit deze map (`Python leren`):
